@@ -1,12 +1,15 @@
+from loguru import logger
+from acer_aspire import State
+
 from pathlib import Path
 import re
 
 import click
-from loguru import logger
+
 from plumbum import FG
 from plumbum.cmd import lsblk
 
-from acer_aspire import State
+
 
 
 def mask_disk_id(disk_id: str) -> str:

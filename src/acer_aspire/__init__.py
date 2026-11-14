@@ -1,6 +1,6 @@
+from loguru import logger
 from dataclasses import dataclass
 from plumbum.cmd import sops
-from loguru import logger
 import click
 import json
 
@@ -20,8 +20,10 @@ def cli(ctx: click.Context) -> None:
     )
 
 from acer_aspire.storage import storage
+from acer_aspire.network import network
 
 cli.add_command(storage)
+cli.add_command(network)
 
 def main() -> None:
     cli()
