@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-from plumbum import wipefs
+from plumbum.cmd import wipefs
 
 @click.group()
 def storage() -> None:
