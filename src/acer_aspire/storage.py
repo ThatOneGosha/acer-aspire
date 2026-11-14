@@ -1,11 +1,17 @@
-from acer_aspire import State
-from loguru import logger
 from pathlib import Path
+
 import click
+from loguru import logger
+from plumbum import FG
+from plumbum.cmd import lsblk
+
+from acer_aspire import State
+
 
 @click.group()
 def storage() -> None:
     pass
+
 
 @storage.command()
 @click.pass_obj
