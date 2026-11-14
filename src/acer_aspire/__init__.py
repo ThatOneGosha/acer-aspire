@@ -1,4 +1,3 @@
-from loguru import logger
 from dataclasses import dataclass
 from plumbum.cmd import sops
 import click
