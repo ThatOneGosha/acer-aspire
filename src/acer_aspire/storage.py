@@ -10,3 +10,4 @@ def storage() -> None:
 @click.pass_obj
 def check(state: State) -> None:
     print(state.storage)
+    print(state.network)
