@@ -9,5 +9,12 @@ def storage() -> None:
 @storage.command()
 @click.pass_obj
 def check(state: State) -> None:
-    print(state.storage)
-    print(state.network)
+    disk_id = state.storage["storage"]["disk_id"]
+    disk = Path(f"/dev/disk/by-id/{disk_id}")
+
+    if not disk.exists():
+        logger.error("Disk not found: {}", disk)
+        raise SystemExit(1)
+
+    logger.success("Resolved {} -> {}", disk_id, disk.resolve())
+    lsblk["-o", "NAME,MODEL,SIZE,TYPE,FSTYPE", str(disk)] & FG
