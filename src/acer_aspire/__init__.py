@@ -11,7 +11,7 @@ class State:
 
 @click.group()
 @click.pass_context
-def cli(ctx: click.Context):
+def cli(ctx: click.Context) -> None:
     storage = sops["-d", "--output-type", "json", "secrets/storage.yaml"]()
     network = sops["-d", "--output-type", "json", "secrets/network.yaml"]()
     ctx.obj = State(
@@ -19,10 +19,9 @@ def cli(ctx: click.Context):
         network=json.loads(network)
     )
 
-@cli.command()
-@click.pass_obj
-def test(state: State):
-    logger.info("Network: {} | Storage: {}", state.network, state.storage)
+from acer_aspire.storage import storage
+
+cli.add_command(storage)
 
 def main() -> None:
     cli()
