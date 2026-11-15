@@ -11,13 +11,17 @@
 # ///
 
 
-import re
+
 
 from loguru import logger
 from plumbum import FG, ProcessExecutionError, cmd
 
+import re
 
-def main() -> int:
+
+  
+
+def main() ->      int:
     diff_args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
     staged = cmd.git(*diff_args).splitlines()
 
