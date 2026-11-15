@@ -41,7 +41,9 @@ def main() -> int:
     logger.success("Secret files encryption verified.")
     return 0
   except ProcessExecutionError as e:
-    logger.error(e)
+    logger.error(
+        f"Commit blocked (exit code {e.retcode}). Fix unencrypted keys above:"
+    )
     return 1
 
 
