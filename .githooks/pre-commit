@@ -1,4 +1,40 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = "==3.14.10"
+# dependencies = [
+#     "ensure-sops @ git+https://github.com/tacto-ai/ensure-sops",
+#     "loguru==0.8.0",
+#     "plumbum==2.0.2"
+# ]
+# ///
 
-exec uvx pre-commit run
+import re
+
+from loguru import logger
+from plumbum import ProcessExecutionError, local
+from plumbum.cmd import ensure_sops, git
+
+
+def main() -> int:
+  staged = git(
+      "diff", "--cached", "--name-only", "--diff-filter=ACM"
+  ).splitlines()
+  secret_files = [
+      f for f in staged
+      if re.match(r"^secrets/.*\.(yaml|yml|json|env|ini)$", f)
+  ]
+
+  if not secret_files:
+    return 0
+
+  try:
+    ensure_sops[secret_files] & local.FG
+    logger.success("SOPS check passed")
+    return 0
+  except ProcessExecutionError:
+    logger.error("Unencrypted secret detected!")
+    return 1
+
+
+if __name__ == "__main__":
+  raise SystemExit(main())

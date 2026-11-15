@@ -1,8 +1,0 @@
-repos:
-  - repo: https://github.com/tacto-ai/ensure-sops
-    rev: 0.1.0
-    hooks:
-      - id: ensure-sops
-        language_version: python3.10
-        files: '^secrets/.*\.(yaml|yml|json|env|ini)$'
-

@@ -8,7 +8,6 @@ default:
     @just --list
 
 setup: install-deps enable-hooks
-    uv python install 3.10
     uv sync
     @echo "Project setup complete!"
 
