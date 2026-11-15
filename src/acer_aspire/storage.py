@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-from plumbum.cmd import wipefs
+from plumbum.cmd import mkfs_btrfs, parted, partprobe, udevadm, wipefs
 
 @click.group()
 def storage() -> None:
@@ -27,4 +27,19 @@ def setup(state: State, yes: bool) -> None:
         raise SystemExit(1)
 
     logger.success("Resolved disk: {}", disk.resolve())
+
     wipefs["-a", "-f", str(disk)]()
+
+    parted[
+        "-s", str(disk),
+        "mklabel", "gpt",
+        "mkpart", "primary", "1MiB", "2MiB",
+        "set", "1", "bios_grub", "on",
+        "mkpart", "primary", "btrfs", "2MiB", "100%",
+    ]()
+
+    partprobe[str(disk)]()
+    udevadm["settle"]()
+
+    part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
+    mkfs_btrfs["-f", str(part2)]()
