@@ -28,8 +28,10 @@ def setup(state: State, yes: bool) -> None:
         prompt = f"All data on {disk_id} will be removed. Continue?"
         click.confirm(prompt, default=False, abort=True)
         
+    logger.info("Wiping existing signatures on {}...", disk_id)
     wipefs["-a", "-f", str(disk)]()
 
+    logger.info("Creating GPT partition table...")
     parted[
         "-s", str(disk),
         "mklabel", "gpt",
@@ -42,4 +44,7 @@ def setup(state: State, yes: bool) -> None:
     udevadm["settle"]()
 
     part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
+    logger.info("Formatting {} as Btrfs...", part2.name)
     mkfs_btrfs["-f", str(part2)]()
+    
+    logger.success("Storage partitioned and formatted successfully")
