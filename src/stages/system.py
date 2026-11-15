@@ -39,7 +39,7 @@ def setup(state: State) -> None:
                   str(target))
 
     logger.info("Installing base packages...")
-    repo = "https://voidlinux.org"
+    repo = "https://repo-default.voidlinux.org/current"
     packages = [
         "base-system",
         "btrfs-progs",

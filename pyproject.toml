@@ -9,7 +9,8 @@ dependencies = [
     "plumbum==2.0.2",
     "click==8.5.1",
     "isort==9.0.2",
-    "yapf==0.43.0"
+    "yapf==0.43.0",
+    "pexpect==4.9.0",
 ]
 
 [project.scripts]
