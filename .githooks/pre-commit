@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 import re
 
 from loguru import logger
-from plumbum import FG, ProcessExecutionError, cmd
+from plumbum import cmd
 
 
 @dataclass(frozen=True)
@@ -31,21 +31,27 @@ class HookState:
 
 def main() -> int:
   state = HookState()
-
   if not state.secret_files:
-    logger.success("No secret files have been changed.")
     return 0
 
-  try:
-    cmd.ensure_sops[state.secret_files] & FG
-    logger.success("Secret files encryption verified.")
-    return 0
-  except ProcessExecutionError as e:
-    logger.error(
-        f"Commit blocked (exit code {e.retcode}). Fix unencrypted keys above:"
-    )
+  ok = True
+  for path in state.secret_files:
+    retcode, stdout, stderr = cmd.ensure_sops.run([path], retcode=None)
+    if retcode == 0:
+      continue
+
+    ok = False
+    output = f"{stdout}\n{stderr}".strip()
+
+    if "ScannerError" in output or "ParserError" in output:
+      tail = "\n".join(output.splitlines()[-6:])
+      logger.error(f"[{path}] Corrupted YAML/JSON syntax:\n{tail}")
+    else:
+      logger.error(f"[{path}] {output}")
+
+  if not ok:
     return 1
 
+  logger.success(f"SOPS check passed ({len(state.secret_files)} file(s))")
+  return 0
 
-if __name__ == "__main__":
-  raise SystemExit(main())
