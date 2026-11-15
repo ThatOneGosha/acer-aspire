@@ -8,32 +8,40 @@
 # ]
 # ///
 
-
+from dataclasses import dataclass, field
 import re
-from dataclasses import dataclass
+
 from loguru import logger
-from plumbum import FG, ProcessExecutionError
-from plumbum import cmd
+from plumbum import FG, ProcessExecutionError, cmd
+
 
 @dataclass(frozen=True)
-class State:
+class HookState:
   pattern: str = r"^secrets/.*\.(yaml|yml|json|env|ini)$"
-  staged = cmd.git("diff", "--cached", "--name-only", "--diff-filter=ACM").splitlines()
+  staged: list[str] = field(
+      default_factory=lambda: cmd.git(
+          "diff", "--cached", "--name-only", "--diff-filter=ACM"
+      ).splitlines()
+  )
+
+  @property
+  def secret_files(self) -> list[str]:
+    return [f for f in self.staged if re.match(self.pattern, f)]
+
 
 def main() -> int:
-  state = State()
-  logger.info(f"Staged files: {state.staged}")
-  secret_files = [f for f in state.staged if re.match(state.pattern, f)]
+  state = HookState()
 
-  if not secret_files:
+  if not state.secret_files:
+    logger.success("No secret files found, skip.")
     return 0
 
   try:
-    cmd.ensure_sops[secret_files] & FG
-    logger.success("SOPS check passed")
+    cmd.ensure_sops[state.secret_files] & FG
+    logger.success("Secret files encryption verified.")
     return 0
-  except ProcessExecutionError:
-    logger.error("Unencrypted secret detected!")
+  except ProcessExecutionError as e:
+    logger.error(e)
     return 1
 
 
