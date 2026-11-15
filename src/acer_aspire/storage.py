@@ -5,7 +5,7 @@ from pathlib import Path
 
 import click
 
-from plumbum.cmd import mkfs_btrfs, parted, partprobe, udevadm, wipefs
+from plumbum.cmd import btrfs, mkfs_btrfs, mount, parted, partprobe, udevadm, umount, wipefs
 
 @click.group()
 def storage() -> None:
@@ -47,4 +47,12 @@ def setup(state: State, yes: bool) -> None:
     logger.info("Formatting {} as Btrfs...", part2.name)
     mkfs_btrfs["-f", str(part2)]()
     
-    logger.success("Storage partitioned and formatted successfully")
+    mount[str(part2), "/mnt"]()
+    try:
+        for subvol in ["@root", "@home", "@projects", "@snapshots"]:
+            logger.info("Creating subvolume {}...", subvol)
+            btrfs["subvolume", "create", f"/mnt/{subvol}"]()
+    finally:
+        umount["/mnt"]()
+
+    logger.success("Storage partitioned, formatted, and subvolumes created")
