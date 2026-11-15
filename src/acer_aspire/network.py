@@ -9,4 +9,4 @@ def network() -> None:
 @network.command()
 @click.pass_obj
 def check(state: State) -> None:
-    logger.success(123)
+    logger.success(42)
