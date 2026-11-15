@@ -17,6 +17,6 @@ sync:
 check-secrets:
     uvx --python 3.10 --from ensure-sops ensure_sops secrets/*
 
-# Edit a secret file safely with sops (e.g., just edit secrets/network.yaml)
+# Decrypt, overwrite, encrypt (e.g., just edit secrets/network.yaml)
 edit file:
     sops {{file}}
