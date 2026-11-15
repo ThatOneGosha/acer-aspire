@@ -1,3 +1,5 @@
+sudo := if `id -u` == "0" { "" } else { "sudo" }
+
 default:
     @just --list
 
@@ -5,7 +7,7 @@ setup: install-deps hooks uv-sync
     @echo "Project setup complete!"
 
 install-deps:
-    xbps-install -Sy age sops just uv
+    {{sudo}} xbps-install -Sy age sops just uv git parted btrfs-progs eudev util-linux
 
 hooks:
     git config core.hooksPath .githooks
