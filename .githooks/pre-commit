@@ -27,7 +27,9 @@ def main() ->      int:
 
     secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
     secret_files = [p for p in staged if secret_re.match(p)]
-    py_files = [p for p in staged if p.endswith(".py")]
+    py_files = [
+        p for p in staged if p.endswith(".py") or p == ".githooks/pre-commit"
+    ]
 
     try:
         if py_files:
