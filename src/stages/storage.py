@@ -20,10 +20,10 @@ def setup(state: State, yes: bool) -> None:
     disk = Path(f"/dev/disk/by-id/{disk_id}")
 
     if not disk.exists():
-        logger.error("Disk not found: {}", disk.resolve())
+        logger.error("Disk not found: '{}'.", disk.resolve())
         raise SystemExit(1)
 
-    logger.success("Resolved disk: {}", disk.resolve())
+    logger.success("Resolved disk: '{}'.", disk.resolve())
 
     if not yes:
         prompt = f"All data on {disk_id} will be removed. Continue?"
@@ -58,4 +58,4 @@ def setup(state: State, yes: bool) -> None:
     finally:
         cmd.umount("/mnt")
 
-    logger.success("Storage partitioned, formatted, and subvolumes created")
+    logger.success("Storage partitioned, formatted, and subvolumes created.")
