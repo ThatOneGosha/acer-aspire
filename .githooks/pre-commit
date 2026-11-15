@@ -8,10 +8,11 @@
 # ]
 # ///
 
+
 import re
 
 from loguru import logger
-from plumbum import ProcessExecutionError, local
+from plumbum import FG, ProcessExecutionError
 from plumbum.cmd import ensure_sops, git
 
 
@@ -28,7 +29,7 @@ def main() -> int:
     return 0
 
   try:
-    ensure_sops[secret_files] & local.FG
+    ensure_sops[secret_files] & FG
     logger.success("SOPS check passed")
     return 0
   except ProcessExecutionError:
