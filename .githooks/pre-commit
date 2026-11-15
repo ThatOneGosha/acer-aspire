@@ -33,7 +33,7 @@ def main() -> int:
   state = HookState()
 
   if not state.secret_files:
-    logger.success("No secret files found, skip.")
+    logger.success("No secret files have been changed.")
     return 0
 
   try:
