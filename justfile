@@ -1,13 +1,18 @@
-sudo := if `id -u` == "0" { "" } else { "sudo" }
+deps := \
+    "age sops just uv git " + \
+    "parted btrfs-progs eudev util-linux"
 
 default:
     @just --list
 
-setup: install-deps hooks uv-sync
+setup: auth install-deps hooks uv-sync
     @echo "Project setup complete!"
 
-install-deps:
-    {{sudo}} xbps-install -Sy age sops just uv git parted btrfs-progs eudev util-linux
+auth:
+    @[ "$(id -u)" -eq 0 ] || (echo "Root privileges required." && exit 1)
+
+install-deps: auth
+    xbps-install -Sy {{deps}}
 
 hooks:
     git config core.hooksPath .githooks
