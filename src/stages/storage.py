@@ -39,7 +39,7 @@ def setup(state: State, yes: bool) -> None:
         "mklabel", "gpt",
         "mkpart", "primary", "1MiB", "2MiB",
         "set", "1", "bios_grub", "on",
-        "mkpart", "primary", "btrfs", "2MiB", "100%",
+        "mkpart",  "primary", "btrfs", "2MiB", "100%",
     )
     # yapf: enable
 

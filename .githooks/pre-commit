@@ -1,5 +1,6 @@
 #!/usr/bin/env sh
 set -e
 
-uv run repo ensure-sops
 uv run repo fmt
+uv run repo ensure-sops
+
