@@ -20,7 +20,7 @@ def setup(state: State, yes: bool) -> None:
     disk = Path(f"/dev/disk/by-id/{disk_id}")
 
     if not disk.exists():
-        logger.error("Disk not found: '{}'.", disk.resolve())
+        logger.error("Disk not found: '{}'.", disk)
         raise SystemExit(1)
 
     logger.success("Resolved disk: '{}'.", disk.resolve())
