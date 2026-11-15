@@ -58,4 +58,6 @@ def setup(state: State, yes: bool) -> None:
     finally:
         cmd.umount("/mnt")
 
+    cmd.mount("-o", "defaults,subvol=@root", part2, "/mnt")
+
     logger.success("Storage partitioned, formatted, and subvolumes created.")
