@@ -12,11 +12,6 @@ def storage() -> None:
     pass
 
 
-
-
-
-  
-
 @storage.command()
 @click.option("--yes", is_flag=True)
 @click.pass_obj
