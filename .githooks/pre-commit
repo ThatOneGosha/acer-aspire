@@ -4,44 +4,41 @@
 # dependencies = [
 #     "ensure-sops @ git+https://github.com/tacto-ai/ensure-sops",
 #     "loguru==0.8.0",
-#     "plumbum==2.0.2"
+#     "plumbum==2.0.2",
+#     "isort==9.0.2",
+#     "yapf==0.43.0"
 # ]
 # ///
 
 
-from dataclasses import dataclass, field
 import re
 
 from loguru import logger
 from plumbum import FG, ProcessExecutionError, cmd
 
 
-@dataclass(frozen=True)
-class HookState:
-  files: list[str] = field(
-      default_factory=lambda: [
-          f
-          for f in cmd.git(
-              "diff", "--cached", "--name-only", "--diff-filter=ACM"
-          ).splitlines()
-          if re.match(r"^secrets/.*\.(yaml|yml|json|env|ini)$", f)
-      ]
-  )
-
-
 def main() -> int:
-  state = HookState()
-  if not state.files:
-    return 0
+    diff_args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
+    staged = cmd.git(*diff_args).splitlines()
 
-  try:
-    cmd.ensure_sops[state.files] & FG
-    logger.success(f"SOPS OK ({len(state.files)} file(s))")
+    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
+    secret_files = [p for p in staged if secret_re.match(p)]
+    py_files = [p for p in staged if p.endswith(".py")]
+
+    try:
+        if py_files:
+            cmd.isort["--check-only", "--diff", py_files] & FG
+            cmd.yapf["--diff", py_files] & FG
+
+        if secret_files:
+            cmd.ensure_sops[secret_files] & FG
+    except ProcessExecutionError:
+        return 1
+
+    if py_files or secret_files:
+        logger.success("Pre-commit checks passed")
     return 0
-  except ProcessExecutionError:
-    return 1
 
 
 if __name__ == "__main__":
-  raise SystemExit(main())
-
+    raise SystemExit(main())
