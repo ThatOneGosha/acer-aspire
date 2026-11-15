@@ -4,15 +4,21 @@ version = "0.1.0"
 description = "Infrastructure-as-code ricing for acer aspire one netbook."
 requires-python = "==3.14.10"
 dependencies = [
-    "click==8.5.1",
+    "ensure-sops @ git+https://github.com/tacto-ai/ensure-sops",
     "loguru==0.8.0",
     "plumbum==2.0.2",
+    "click==8.5.1",
+    "isort==9.0.2",
+    "yapf==0.43.0"
 ]
 
 [project.scripts]
-acer-aspire = "acer_aspire:main"
+stages = "stages:main"
+repo = "repo:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
 build-backend = "uv_build"
 
+[tool.uv.build-backend]
+module-name = ["stages", "repo"]

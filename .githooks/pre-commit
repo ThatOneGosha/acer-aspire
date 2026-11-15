@@ -1,46 +1,5 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = "==3.14.10"
-# dependencies = [
-#     "ensure-sops @ git+https://github.com/tacto-ai/ensure-sops",
-#     "loguru==0.8.0",
-#     "plumbum==2.0.2",
-#     "isort==9.0.2",
-#     "yapf==0.43.0"
-# ]
-# ///
+#!/usr/bin/env sh
+set -e
 
-import re
-
-from loguru import logger
-from plumbum import FG, ProcessExecutionError, cmd
-
-
-def main() -> int:
-    diff_args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
-    staged = cmd.git(*diff_args).splitlines()
-
-    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-    secret_files = [p for p in staged if secret_re.match(p)]
-    py_files = [
-        p for p in staged if p.endswith(".py") or p == ".githooks/pre-commit"
-    ]
-
-    try:
-        if py_files:
-            logger.info(f"Applying formatting for {len(py_files)} files...")
-            cmd.isort[py_files] & FG
-            cmd.yapf["-i", py_files] & FG
-
-        if secret_files:
-            logger.info("Checking secrets encryption...")
-            cmd.ensure_sops[secret_files] & FG
-    except ProcessExecutionError:
-        return 1
-
-    logger.success("Checks passed, formatting applied!")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+uv run repo fmt
+uv run repo ensure-sops

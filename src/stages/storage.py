@@ -4,7 +4,7 @@ import click
 from loguru import logger
 from plumbum import cmd
 
-from acer_aspire import State
+from stages import State
 
 
 @click.group()

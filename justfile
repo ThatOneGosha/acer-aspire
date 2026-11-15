@@ -7,16 +7,17 @@ deps := \
 default:
     @just --list
 
-setup: install-deps enable-hooks
+init: install-deps enable-hooks
     uv sync
-    @echo "Project setup complete!"
+    @echo "Project init complete."
 
 install-deps:
     {{sudo}} xbps-install -Sy {{deps}}
+    @echo "Dependencies installed."
 
 enable-hooks:
     git config core.hooksPath .githooks
-    @echo "Git hooks enabled from .githooks/"
+    @echo "Git hooks enabled from '.githooks/'."
 
 import-keys device:
     mkdir -p ~/.config/sops/age
@@ -25,8 +26,5 @@ import-keys device:
     cp /mnt/ventoy_storage/sops-acer-aspire/age/keys.txt ~/.config/sops/age/keys.txt
     chmod 600 ~/.config/sops/age/keys.txt
     {{sudo}} umount /mnt/ventoy_storage
-    @echo "Age keys imported from {{device}}"
+    @echo "Age keys imported from '{{device}}'."
 
-# Decrypt, overwrite, encrypt (e.g., just edit secrets/network.yaml)
-edit file:
-    sops {{file}}

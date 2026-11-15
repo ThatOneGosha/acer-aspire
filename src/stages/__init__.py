@@ -19,8 +19,8 @@ def cli(ctx: click.Context) -> None:
     ctx.obj = State(storage=json.loads(storage), network=json.loads(network))
 
 
-from acer_aspire.network import network
-from acer_aspire.storage import storage
+from stages.network import network
+from stages.storage import storage
 
 cli.add_command(storage)
 cli.add_command(network)
