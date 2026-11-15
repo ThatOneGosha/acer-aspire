@@ -14,7 +14,6 @@ def get_staged_files() -> list[str]:
 
 @click.group()
 def main() -> None:
-    """Repository formatting and security checks."""
     pass
 
 
@@ -44,16 +43,9 @@ def fmt(staged: bool) -> None:
 
 
 @main.command("ensure-sops")
-@click.option("--staged",
-              is_flag=True,
-              help="Check only git staged secret files.")
-def ensure_sops(staged: bool) -> None:
-    """Verify secret files are encrypted with SOPS."""
-    if staged:
-        secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-        targets = [p for p in get_staged_files() if secret_re.match(p)]
-    else:
-        targets = [str(p) for p in Path("secrets").rglob("*") if p.is_file()]
+def ensure_sops() -> None:
+    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
+    targets = [p for p in get_staged_files() if secret_re.match(p)]
 
     if not targets:
         return
