@@ -8,18 +8,17 @@
 # ]
 # ///
 
-import re
+from pathlib import Path
 
 from loguru import logger
 from plumbum import cmd
 
 
 def main() -> int:
-  staged = cmd.git(
-      "diff", "--cached", "--name-only", "--diff-filter=ACM"
-  ).splitlines()
   files = [
-      f for f in staged if re.match(r"^secrets/.*\.(yaml|yml|json|env|ini)$", f)
+      str(p)
+      for p in Path("secrets").rglob("*")
+      if p.is_file() and p.suffix in {".yaml", ".yml", ".json", ".env", ".ini"}
   ]
 
   ok = True
