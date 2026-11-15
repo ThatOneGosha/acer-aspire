@@ -5,11 +5,11 @@ deps := \
 default:
     @just --list
 
-setup: auth install-deps hooks uv-sync
-    @echo "Project setup complete!"
-
 auth:
     @[ "$(id -u)" -eq 0 ] || (echo "Root privileges required." && exit 1)
+
+setup: auth install-deps hooks uv-sync
+    @echo "Project setup complete!"
 
 install-deps: auth
     xbps-install -Sy {{deps}}
