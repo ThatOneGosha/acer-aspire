@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from plumbum.cmd import sops
+from plumbum import cmd
 import click
 import json
 
@@ -11,8 +11,8 @@ class State:
 @click.group()
 @click.pass_context
 def cli(ctx: click.Context) -> None:
-    storage = sops["-d", "--output-type", "json", "secrets/storage.yaml"]()
-    network = sops["-d", "--output-type", "json", "secrets/network.yaml"]()
+    storage = cmd.sops["-d", "--output-type", "json", "secrets/storage.yaml"]()
+    network = cmd.sops["-d", "--output-type", "json", "secrets/network.yaml"]()
     ctx.obj = State(
         storage=json.loads(storage),
         network=json.loads(network)
