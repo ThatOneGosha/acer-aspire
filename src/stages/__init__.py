@@ -21,9 +21,11 @@ def cli(ctx: click.Context) -> None:
 
 from stages.network import network
 from stages.storage import storage
+from stages.system import system
 
 cli.add_command(storage)
 cli.add_command(network)
+cli.add_command(system)
 
 
 def main() -> None:
