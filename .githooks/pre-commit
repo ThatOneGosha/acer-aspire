@@ -8,50 +8,34 @@
 # ]
 # ///
 
-from dataclasses import dataclass, field
 import re
 
 from loguru import logger
 from plumbum import cmd
 
 
-@dataclass(frozen=True)
-class HookState:
-  pattern: str = r"^secrets/.*\.(yaml|yml|json|env|ini)$"
-  staged: list[str] = field(
-      default_factory=lambda: cmd.git(
-          "diff", "--cached", "--name-only", "--diff-filter=ACM"
-      ).splitlines()
-  )
-
-  @property
-  def secret_files(self) -> list[str]:
-    return [f for f in self.staged if re.match(self.pattern, f)]
-
-
 def main() -> int:
-  state = HookState()
-  if not state.secret_files:
-    return 0
+  staged = cmd.git(
+      "diff", "--cached", "--name-only", "--diff-filter=ACM"
+  ).splitlines()
+  files = [
+      f for f in staged if re.match(r"^secrets/.*\.(yaml|yml|json|env|ini)$", f)
+  ]
 
   ok = True
-  for path in state.secret_files:
-    retcode, stdout, stderr = cmd.ensure_sops.run([path], retcode=None)
-    if retcode == 0:
-      continue
-
-    ok = False
-    output = f"{stdout}\n{stderr}".strip()
-
-    if "ScannerError" in output or "ParserError" in output:
-      tail = "\n".join(output.splitlines()[-6:])
-      logger.error(f"[{path}] Corrupted YAML/JSON syntax:\n{tail}")
-    else:
-      logger.error(f"[{path}] {output}")
+  for f in files:
+    rc, _, err = cmd.sops.run(["-d", f], retcode=None)
+    if rc != 0:
+      ok = False
+      logger.error(f"[{f}] {err.strip()}")
 
   if not ok:
     return 1
 
-  logger.success(f"SOPS check passed ({len(state.secret_files)} file(s))")
+  if files:
+    logger.success(f"SOPS OK ({len(files)} file(s))")
   return 0
 
+
+if __name__ == "__main__":
+  raise SystemExit(main())
