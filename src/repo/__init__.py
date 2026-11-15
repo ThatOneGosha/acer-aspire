@@ -47,5 +47,6 @@ def ensure_sops() -> None:
         cmd.ensure_sops[targets] & FG
         logger.success("Secrets encryption verified.")
     except ProcessExecutionError:
-        logger.error("Unencrypted secret detected. Aborting commit.")
+        logger.error("Secrets verification failed. Aborting commit.")
+
         raise SystemExit(1)
