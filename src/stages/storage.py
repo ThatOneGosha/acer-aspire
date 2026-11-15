@@ -58,6 +58,17 @@ def setup(state: State, yes: bool) -> None:
     finally:
         cmd.umount("/mnt")
 
+    logger.info("Creating mountpoints...")
     cmd.mount("-o", "defaults,subvol=@root", part2, "/mnt")
+    for mountpoint in [
+            "/mnt/home",
+            "/mnt/projects",
+            "/mnt/.snapshots",
+    ]:
+        Path(mountpoint).mkdir(parents=True, exist_ok=True)
+
+    logger.info("Synchronizing xbps keys...")
+    cmd.mkdir("-p", "/mnt/var/db/xbps")
+    cmd.cp("-R", "/var/db/xbps/keys", "/mnt/var/db/xbps/")
 
     logger.success("Storage partitioned, formatted, and subvolumes created.")
