@@ -7,7 +7,7 @@ deps := \
 default:
     @just --list
 
-setup: install-deps hooks
+setup: install-deps enable-hooks
     uv python install 3.10
     uv sync
     @echo "Project setup complete!"
@@ -15,7 +15,7 @@ setup: install-deps hooks
 install-deps:
     {{sudo}} xbps-install -Sy {{deps}}
 
-hooks:
+enable-hooks:
     git config core.hooksPath .githooks
     @echo "Git hooks enabled from .githooks/"
 
