@@ -1,12 +1,9 @@
 from loguru import logger
 from acer_aspire import State
-
+from plumbum import cmd
 from pathlib import Path
 
 import click
-
-
-from plumbum.cmd import btrfs, mkfs_btrfs, mount, parted, partprobe, udevadm, umount, wipefs
 
 @click.group()
 def storage() -> None:
@@ -30,10 +27,10 @@ def setup(state: State, yes: bool) -> None:
         click.confirm(prompt, default=False, abort=True)
         
     logger.info("Wiping existing signatures on {}...", disk_id)
-    wipefs["-a", "-f", str(disk)]()
+    cmd.wipefs["-a", "-f", str(disk)]()
 
     logger.info("Creating GPT partition table...")
-    parted[
+    cmd.parted[
         "-s", str(disk),
         "mklabel", "gpt",
         "mkpart", "primary", "1MiB", "2MiB",
@@ -41,19 +38,19 @@ def setup(state: State, yes: bool) -> None:
         "mkpart", "primary", "btrfs", "2MiB", "100%",
     ]()
 
-    partprobe[str(disk)]()
-    udevadm["settle"]()
+    cmd.partprobe[str(disk)]()
+    cmd.udevadm["settle"]()
 
     part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
     logger.info("Formatting {} as Btrfs...", part2.name)
-    mkfs_btrfs["-f", str(part2)]()
+    cmd.mkfs_btrfs["-f", str(part2)]()
     
-    mount[str(part2), "/mnt"]()
+    cmd.mount[str(part2), "/mnt"]()
     try:
         for subvol in ["@root", "@home", "@projects", "@snapshots"]:
             logger.info("Creating subvolume {}...", subvol)
-            btrfs["subvolume", "create", f"/mnt/{subvol}"]()
+            cmd.btrfs["subvolume", "create", f"/mnt/{subvol}"]()
     finally:
-        umount["/mnt"]()
+        cmd.umount["/mnt"]()
 
     logger.success("Storage partitioned, formatted, and subvolumes created")
