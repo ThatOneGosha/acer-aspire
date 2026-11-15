@@ -30,42 +30,32 @@ def setup(state: State, yes: bool) -> None:
         click.confirm(prompt, default=False, abort=True)
 
     logger.info("Wiping existing signatures on {}...", disk_id)
-    cmd.wipefs["-a", "-f", str(disk)]()
+    cmd.wipefs("-a", "-f", str(disk))
 
     logger.info("Creating GPT partition table...")
-    cmd.parted[
-        "-s",
-        str(disk),
-        "mklabel",
-        "gpt",
-        "mkpart",
-        "primary",
-        "1MiB",
-        "2MiB",
-        "set",
-        "1",
-        "bios_grub",
-        "on",
-        "mkpart",
-        "primary",
-        "btrfs",
-        "2MiB",
-        "100%",
-    ]()
+    # yapf: disable
+    cmd.parted(
+        "-s", str(disk),
+        "mklabel", "gpt",
+        "mkpart", "primary", "1MiB", "2MiB",
+        "set", "1", "bios_grub", "on",
+        "mkpart", "primary", "btrfs", "2MiB", "100%",
+    )
+    # yapf: enable
 
-    cmd.partprobe[str(disk)]()
-    cmd.udevadm["settle"]()
+    cmd.partprobe(str(disk))
+    cmd.udevadm("settle")
 
     part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
     logger.info("Formatting {} as Btrfs...", part2.name)
-    cmd.mkfs_btrfs["-f", str(part2)]()
+    cmd.mkfs_btrfs("-f", str(part2))
 
-    cmd.mount[str(part2), "/mnt"]()
+    cmd.mount(str(part2), "/mnt")
     try:
         for subvol in ["@root", "@home", "@projects", "@snapshots"]:
             logger.info("Creating subvolume {}...", subvol)
-            cmd.btrfs["subvolume", "create", f"/mnt/{subvol}"]()
+            cmd.btrfs("subvolume", "create", f"/mnt/{subvol}")
     finally:
-        cmd.umount["/mnt"]()
+        cmd.umount("/mnt")
 
     logger.success("Storage partitioned, formatted, and subvolumes created")
