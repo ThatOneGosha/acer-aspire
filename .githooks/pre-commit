@@ -27,16 +27,16 @@ def main() -> int:
 
     try:
         if py_files:
-            cmd.isort["--check-only", "--diff", py_files] & FG
-            cmd.yapf["--diff", py_files] & FG
+            logger.info("Applying formatting for {len(py_files)} files...")
+            cmd.isort[py_files] & FG
+            cmd.yapf["-i", py_files] & FG
 
         if secret_files:
+            logger.info("Checking secrets encryption...")
             cmd.ensure_sops[secret_files] & FG
     except ProcessExecutionError:
         return 1
-
-    if py_files or secret_files:
-        logger.success("Pre-commit checks passed")
+    
     return 0
 
 
