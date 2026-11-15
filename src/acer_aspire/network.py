@@ -1,10 +1,13 @@
-from loguru import logger
-from acer_aspire import State
 import click
+from loguru import logger
+
+from acer_aspire import State
+
 
 @click.group()
 def network() -> None:
     pass
+
 
 @network.command()
 @click.pass_obj
