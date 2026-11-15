@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Run pre-commit on staged files using uvx (no project dependencies needed)
 exec uvx pre-commit run
