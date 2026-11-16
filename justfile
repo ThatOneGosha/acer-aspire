@@ -23,12 +23,10 @@ enable-hooks:
     @echo "Git hooks enabled from '.githooks/'."
 
 import-keys device keys=(mountpoint / default_keys):
-    #!/usr/bin/env sh
-    set -eu
     mkdir -p ~/.config/sops/age
     {{sudo}} mkdir -p "{{mountpoint}}"
     {{sudo}} mount "{{device}}" "{{mountpoint}}"
-    trap '{{sudo}} umount "{{mountpoint}}"' EXIT
     cp "{{keys}}" ~/.config/sops/age/keys.txt
+    {{sudo}} umount {{mountpoint}}
     chmod 600 ~/.config/sops/age/keys.txt
     echo "Age keys imported from '{{device}}'."
