@@ -5,14 +5,14 @@ from loguru import logger
 from plumbum import FG, ProcessExecutionError, cmd
 
 
-def get_staged_files() -> list[str]:
-    args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
-    return cmd.git(*args).splitlines()
-
-
 @click.group()
 def main() -> None:
     pass
+
+
+def get_staged_files() -> list[str]:
+    args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
+    return cmd.git(*args).splitlines()
 
 
 def get_yaml_targets(sources: list[str]) -> list[str]:
