@@ -46,7 +46,7 @@ def run_ensure_sops(targets: list[str]) -> None:
 
 @main.command()
 @click.argument("files", nargs=-1)
-def fmt(files: list[str] | None = None) -> None:
+def fmt(files: tuple[str, ...]) -> None:
     sources = list(files) if files else get_staged_files()
     yaml_targets = get_yaml_targets(sources)
     python_targets = get_python_targets(sources)
@@ -72,7 +72,7 @@ def fmt(files: list[str] | None = None) -> None:
 
 @main.command("ensure-sops")
 @click.argument("files", nargs=-1)
-def ensure_sops(files: list[str] | None = None) -> None:
+def ensure_sops(files: tuple[str, ...]) -> None:
     sources = list(files) if files else get_staged_files()
     targets = get_sops_targets(sources)
 
