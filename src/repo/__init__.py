@@ -1,4 +1,5 @@
 import re
+from collections.abc import Sequence
 
 import click
 from loguru import logger
@@ -15,39 +16,39 @@ def get_staged_files() -> list[str]:
     return cmd.git(*args).splitlines()
 
 
-def get_yaml_targets(sources: list[str]) -> list[str]:
+def get_yaml_targets(sources: Sequence[str]) -> list[str]:
     return [
         s for s in sources
         if s.endswith((".yaml", ".yml")) and not s.startswith("secrets/")
     ]
 
 
-def get_python_targets(sources: list[str]) -> list[str]:
+def get_python_targets(sources: Sequence[str]) -> list[str]:
     return [s for s in sources if s.endswith(".py")]
 
 
-def fmt_yaml(targets: list[str]) -> None:
+def fmt_yaml(targets: Sequence[str]) -> None:
     cmd.yamlfix[targets] & FG
 
 
-def fmt_python(targets: list[str]) -> None:
+def fmt_python(targets: Sequence[str]) -> None:
     cmd.isort[targets] & FG
     cmd.yapf["-i", targets] & FG
 
 
-def get_sops_targets(sources: list[str]) -> list[str]:
+def get_sops_targets(sources: Sequence[str]) -> list[str]:
     secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
     return [s for s in sources if secret_re.match(s)]
 
 
-def run_ensure_sops(targets: list[str]) -> None:
+def run_ensure_sops(targets: Sequence[str]) -> None:
     cmd.ensure_sops[targets] & FG
 
 
 @main.command()
 @click.argument("files", nargs=-1)
 def fmt(files: tuple[str, ...]) -> None:
-    sources = list(files) if files else get_staged_files()
+    sources = files if files else get_staged_files()
     yaml_targets = get_yaml_targets(sources)
     python_targets = get_python_targets(sources)
 
@@ -73,7 +74,7 @@ def fmt(files: tuple[str, ...]) -> None:
 @main.command("ensure-sops")
 @click.argument("files", nargs=-1)
 def ensure_sops(files: tuple[str, ...]) -> None:
-    sources = list(files) if files else get_staged_files()
+    sources = files if files else get_staged_files()
     targets = get_sops_targets(sources)
 
     if not targets:
