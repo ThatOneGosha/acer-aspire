@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
 set -e
 
-uv run repo fmt
-uv run repo ensure-sops
+exec uv run repo pre-commit
 

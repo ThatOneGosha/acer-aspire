@@ -22,7 +22,7 @@ requires-dist = [
     { name = "ensure-sops", git = "https://github.com/tacto-ai/ensure-sops" },
     { name = "isort", specifier = "==9.0.2" },
     { name = "loguru", specifier = "==0.8.0" },
-    { name = "pexpect", specifier = ">=4.9.0" },
+    { name = "pexpect", specifier = "==4.9.0" },
     { name = "plumbum", specifier = "==2.0.2" },
     { name = "yapf", specifier = "==0.43.0" },
 ]

@@ -48,3 +48,10 @@ def ensure_sops() -> None:
         logger.success("Secrets encryption verified.")
     except ProcessExecutionError:
         raise SystemExit(1)
+
+
+@main.command("pre-commit")
+@click.pass_context
+def pre_commit(ctx: click.Context) -> None:
+    for task in [fmt, ensure_sops]:
+        ctx.invoke(task)
