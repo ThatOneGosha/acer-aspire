@@ -18,17 +18,24 @@ def main() -> None:
 @main.command()
 def fmt(files: list[str] | None = None) -> None:
     staged = files if files is not None else get_staged_files()
-    targets = [p for p in staged if p.endswith(".py")]
+    py_targets = [p for p in staged if p.endswith(".py")]
+    yaml_targets = [p for p in staged if p.endswith((".yaml", ".yml"))]
 
-    if not targets:
-        logger.info("No staged Python files found, skipping.")
+    if not py_targets and not yaml_targets:
+        logger.info("No staged Python or YAML files found, skipping.")
         return
 
     try:
-        logger.info(f"Formatting {len(targets)} file(s)...")
-        cmd.isort[targets] & FG
-        cmd.yapf["-i", targets] & FG
-        cmd.git["add", targets] & FG
+        if py_targets:
+            logger.info(f"Formatting {len(py_targets)} Python file(s)...")
+            cmd.isort[py_targets] & FG
+            cmd.yapf["-i", py_targets] & FG
+
+        if yaml_targets:
+            logger.info(f"Formatting {len(yaml_targets)} YAML file(s)...")
+            cmd.yamlfix[yaml_targets] & FG
+
+        cmd.git["add", py_targets + yaml_targets] & FG
         logger.success("Formatting applied.")
     except ProcessExecutionError:
         raise SystemExit(1)

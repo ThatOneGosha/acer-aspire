@@ -11,6 +11,7 @@ dependencies = [
     "isort==9.0.2",
     "yapf==0.43.0",
     "pexpect==4.9.0",
+    "yamlfix==1.19.1",
 ]
 
 [project.scripts]
