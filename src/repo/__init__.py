@@ -15,30 +15,55 @@ def main() -> None:
     pass
 
 
-@main.command()
-def fmt(files: list[str] | None = None) -> None:
-    staged = files if files is not None else get_staged_files()
-    py_targets = [p for p in staged if p.endswith(".py")]
-    yaml_targets = [
-        p for p in staged
-        if p.endswith((".yaml", ".yml")) and not p.startswith("secrets/")
+def get_yaml_targets(sources: list[str]) -> list[str]:
+    return [
+        s for s in sources
+        if s.endswith((".yaml", ".yml")) and not s.startswith("secrets/")
     ]
 
-    if not py_targets and not yaml_targets:
+
+def get_python_targets(sources: list[str]) -> list[str]:
+    return [s for s in sources if s.endswith(".py")]
+
+
+def fmt_yaml(targets: list[str]) -> None:
+    cmd.yamlfix[targets] & FG
+
+
+def fmt_python(targets: list[str]) -> None:
+    cmd.isort[targets] & FG
+    cmd.yapf["-i", targets] & FG
+
+
+def get_sops_targets(sources: list[str]) -> list[str]:
+    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
+    return [s for s in sources if secret_re.match(s)]
+
+
+def ensure_sops(targets: list[str]) -> None:
+    cmd.ensure_sops[targets] & FG
+
+
+@main.command()
+def fmt(files: list[str] | None = None) -> None:
+    sources = files if files is not None else get_staged_files()
+    yaml_targets = get_yaml_targets(sources)
+    python_targets = get_python_targets(sources)
+
+    if not (yaml_targets or python_targets):
         logger.info("No staged Python or YAML files found, skipping.")
         return
 
     try:
-        if py_targets:
-            logger.info(f"Formatting {len(py_targets)} Python file(s)...")
-            cmd.isort[py_targets] & FG
-            cmd.yapf["-i", py_targets] & FG
+        if python_targets:
+            logger.info(f"Formatting {len(python_targets)} Python file(s)...")
+            fmt_python(python_targets)
 
         if yaml_targets:
             logger.info(f"Formatting {len(yaml_targets)} YAML file(s)...")
-            cmd.yamlfix[yaml_targets] & FG
+            fmt_yaml(yaml_targets)
 
-        cmd.git["add", py_targets + yaml_targets] & FG
+        cmd.git["add", python_targets + yaml_targets] & FG
         logger.success("Formatting applied.")
     except ProcessExecutionError:
         raise SystemExit(1)
@@ -46,9 +71,8 @@ def fmt(files: list[str] | None = None) -> None:
 
 @main.command("ensure-sops")
 def ensure_sops(files: list[str] | None = None) -> None:
-    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-    staged = files if files is not None else get_staged_files()
-    targets = [p for p in staged if secret_re.match(p)]
+    sources = files if files is not None else get_staged_files()
+    targets = get_sops_targets(sources)
 
     if not targets:
         logger.info("No staged secrets found, skipping.")
@@ -56,7 +80,7 @@ def ensure_sops(files: list[str] | None = None) -> None:
 
     try:
         logger.info(f"Checking encryption for {len(targets)} file(s)...")
-        cmd.ensure_sops[targets] & FG
+        ensure_sops(targets)
         logger.success("Secrets encryption verified.")
     except ProcessExecutionError:
         raise SystemExit(1)
