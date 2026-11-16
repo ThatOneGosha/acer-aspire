@@ -17,12 +17,12 @@ def system() -> None:
 @click.pass_obj
 def setup(state: State) -> None:
     mnt = Path("/mnt")
-    disk_id = state.storage["storage"]["disk_id"]
+    disk_id = state.storage["main_disk"]["id"]
     disk = Path(f"/dev/disk/by-id/{disk_id}")
     part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
     cmd.mount("-o", "defaults,subvol=@root", part2, "/mnt")
 
-    root_password = state.users["root"]
+    root_password = state.users["passwords"]["root"]
 
     if not disk.exists() or not part2.exists():
         logger.error("Target disk or Btrfs partition not found: '{}'.", disk)

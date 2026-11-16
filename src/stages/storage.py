@@ -16,7 +16,7 @@ def storage() -> None:
 @click.option("--yes", is_flag=True)
 @click.pass_obj
 def setup(state: State, yes: bool) -> None:
-    disk_id = state.storage["storage"]["disk_id"]
+    disk_id = state.storage["main_disk"]["id"]
     disk = Path(f"/dev/disk/by-id/{disk_id}")
 
     if not disk.exists():
