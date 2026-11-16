@@ -19,7 +19,10 @@ def main() -> None:
 def fmt(files: list[str] | None = None) -> None:
     staged = files if files is not None else get_staged_files()
     py_targets = [p for p in staged if p.endswith(".py")]
-    yaml_targets = [p for p in staged if p.endswith((".yaml", ".yml"))]
+    yaml_targets = [
+        p for p in staged
+        if p.endswith((".yaml", ".yml")) and not p.startswith("secrets/")
+    ]
 
     if not py_targets and not yaml_targets:
         logger.info("No staged Python or YAML files found, skipping.")
