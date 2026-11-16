@@ -40,7 +40,7 @@ def get_sops_targets(sources: list[str]) -> list[str]:
     return [s for s in sources if secret_re.match(s)]
 
 
-def ensure_sops(targets: list[str]) -> None:
+def run_ensure_sops(targets: list[str]) -> None:
     cmd.ensure_sops[targets] & FG
 
 
@@ -80,7 +80,7 @@ def ensure_sops(files: list[str] | None = None) -> None:
 
     try:
         logger.info(f"Checking encryption for {len(targets)} file(s)...")
-        ensure_sops(targets)
+        run_ensure_sops(targets)
         logger.success("Secrets encryption verified.")
     except ProcessExecutionError:
         raise SystemExit(1)
