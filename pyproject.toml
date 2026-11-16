@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Infrastructure-as-code ricing for acer aspire one netbook."
 requires-python = "==3.14.10"
 dependencies = [
-    "ensure-sops @ git+https://github.com/tacto-ai/ensure-sops",
+    "ensure-sops",
     "loguru==0.8.0",
     "plumbum==2.0.2",
     "click==8.5.1",
@@ -23,3 +23,7 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = ["stages", "repo"]
+
+
+[tool.uv.sources]
+ensure-sops = { git = "https://github.com/tacto-ai/ensure-sops", rev = "f52ef481ea12b0aec76721cf7280520fb4e13f66" }
