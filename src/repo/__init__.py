@@ -16,8 +16,9 @@ def main() -> None:
 
 
 @main.command()
-def fmt() -> None:
-    targets = [p for p in get_staged_files() if p.endswith(".py")]
+def fmt(files: list[str] | None = None) -> None:
+    staged = files if files is not None else get_staged_files()
+    targets = [p for p in staged if p.endswith(".py")]
 
     if not targets:
         logger.info("No staged Python files found, skipping.")
@@ -34,9 +35,10 @@ def fmt() -> None:
 
 
 @main.command("ensure-sops")
-def ensure_sops() -> None:
+def ensure_sops(files: list[str] | None = None) -> None:
     secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-    targets = [p for p in get_staged_files() if secret_re.match(p)]
+    staged = files if files is not None else get_staged_files()
+    targets = [p for p in staged if secret_re.match(p)]
 
     if not targets:
         logger.info("No staged secrets found, skipping.")
@@ -53,5 +55,6 @@ def ensure_sops() -> None:
 @main.command("pre-commit")
 @click.pass_context
 def pre_commit(ctx: click.Context) -> None:
-    for task in [fmt, ensure_sops]:
-        ctx.invoke(task)
+    staged = get_staged_files()
+    for task in (fmt, ensure_sops):
+        ctx.invoke(task, files=staged)
