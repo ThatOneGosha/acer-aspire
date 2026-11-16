@@ -29,4 +29,4 @@ import-keys device keys=(mountpoint / default_keys):
     cp "{{keys}}" ~/.config/sops/age/keys.txt
     {{sudo}} umount {{mountpoint}}
     chmod 600 ~/.config/sops/age/keys.txt
-    echo "Age keys imported from '{{device}}'."
+    @echo "Age keys imported from '{{device}}'."
