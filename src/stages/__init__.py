@@ -9,6 +9,7 @@ from plumbum import cmd
 class State:
     storage: dict
     network: dict
+    users: dict
 
 
 @click.group()
@@ -16,7 +17,10 @@ class State:
 def cli(ctx: click.Context) -> None:
     storage = cmd.sops("-d", "--output-type", "json", "secrets/storage.yaml")
     network = cmd.sops("-d", "--output-type", "json", "secrets/network.yaml")
-    ctx.obj = State(storage=json.loads(storage), network=json.loads(network))
+    users = cmd.sops("-d", "--output-type", "json", "secrets/users.yaml")
+    ctx.obj = State(storage=json.loads(storage),
+                    network=json.loads(network),
+                    users=json.loads(users))
 
 
 from stages.network import network

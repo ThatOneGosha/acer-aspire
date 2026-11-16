@@ -70,5 +70,6 @@ def setup(state: State, yes: bool) -> None:
     logger.info("Synchronizing xbps keys...")
     cmd.mkdir("-p", "/mnt/var/db/xbps")
     cmd.cp("-R", "/var/db/xbps/keys", "/mnt/var/db/xbps/")
+    cmd.umount("/mnt")
 
     logger.success("Storage partitioned, formatted, and subvolumes created.")
