@@ -30,7 +30,7 @@ def partition_bios_gpt(disk: str) -> None:
         "set", "1", "bios_grub", "on",
         "mkpart", "primary", "btrfs", "2MiB", "100%",
     )
-    # yapf: enable\
+    # yapf: enable
 
 
 def sync_partitions(disk: str) -> None:
