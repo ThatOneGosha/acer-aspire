@@ -1,5 +1,6 @@
 import re
 from collections.abc import Sequence
+from functools import cache
 
 import click
 from loguru import logger
@@ -11,20 +12,22 @@ def main() -> None:
     pass
 
 
-def get_staged_files() -> list[str]:
+@cache
+def get_staged_files() -> tuple[str, ...]:
     args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
-    return cmd.git(*args).splitlines()
+    return tuple(cmd.git(*args).splitlines())
 
 
-def get_yaml_targets(sources: Sequence[str]) -> list[str]:
-    return [
+@cache
+def get_yaml_targets(sources: Sequence[str]) -> tuple[str, ...]:
+    return tuple(
         s for s in sources
-        if s.endswith((".yaml", ".yml")) and not s.startswith("secrets/")
-    ]
+        if s.endswith((".yaml", ".yml")) and not s.startswith("secrets/"))
 
 
-def get_python_targets(sources: Sequence[str]) -> list[str]:
-    return [s for s in sources if s.endswith(".py")]
+@cache
+def get_python_targets(sources: Sequence[str]) -> tuple[str, ...]:
+    return tuple(s for s in sources if s.endswith(".py"))
 
 
 def fmt_yaml(targets: Sequence[str]) -> None:
@@ -36,9 +39,10 @@ def fmt_python(targets: Sequence[str]) -> None:
     cmd.yapf["-i", targets] & FG
 
 
-def get_sops_targets(sources: Sequence[str]) -> list[str]:
+@cache
+def get_sops_targets(sources: Sequence[str]) -> tuple[str, ...]:
     secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-    return [s for s in sources if secret_re.match(s)]
+    return tuple(s for s in sources if secret_re.match(s))
 
 
 def run_ensure_sops(targets: Sequence[str]) -> None:
