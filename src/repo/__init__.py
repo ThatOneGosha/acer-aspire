@@ -94,5 +94,9 @@ def ensure_sops(files: tuple[str, ...]) -> None:
 @click.pass_context
 def pre_commit(ctx: click.Context) -> None:
     staged = get_staged_files()
+    if not staged:
+        logger.info("No staged files found, skipping.")
+        return
+
     for task in (fmt, ensure_sops):
         ctx.invoke(task, files=staged)
