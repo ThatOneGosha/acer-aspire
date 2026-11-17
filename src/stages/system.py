@@ -13,6 +13,7 @@ def system() -> None:
     pass
 
 
+# fix this god-func
 @system.command()
 @click.pass_obj
 def setup(state: State) -> None:
