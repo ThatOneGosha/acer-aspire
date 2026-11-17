@@ -1,0 +1,34 @@
+{
+  "btrfs": {
+    "device": "LABEL=acer-disk",
+    "bottom": "/mnt/acer-disk-bottom",
+    "snapshots": "@snapshots",
+    "bootable": "@root",
+    "options": [],
+    "bottom_options": ["subvolid=5"],
+    "presets": {
+      "default": ["@root", "@home"],
+      "full": ["@root", "@home", "@projects"]
+    }
+  },
+  "btrfs_mounts": [
+    { "mountpoint": "/", "subvol": "@root" },
+    { "mountpoint": "/home", "subvol": "@home" },
+    { "mountpoint": "/projects", "subvol": "@projects" },
+    { "mountpoint": "/.acer-disk-snaps", "subvol": "@snapshots" }
+  ],
+  "static_mounts": [
+    {
+      "device": "tmpfs",
+      "mountpoint": "/tmp",
+      "fstype": "tmpfs",
+      "options": [
+        "mode=1777",
+        "nosuid",
+        "nodev"
+      ],
+      "dump": 0,
+      "pass": 0
+    }
+  ]
+}
