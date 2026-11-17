@@ -45,6 +45,10 @@ def run_ensure_sops(targets: Sequence[str]) -> None:
     cmd.ensure_sops[targets] & FG
 
 
+def run_typecheck(targets: Sequence[str]) -> None:
+    cmd.mypy[targets] & FG
+
+
 @main.command()
 @click.argument("files", nargs=-1)
 def fmt(files: tuple[str, ...]) -> None:
@@ -89,6 +93,24 @@ def ensure_sops(files: tuple[str, ...]) -> None:
         raise SystemExit(1)
 
 
+@main.command()
+@click.argument("files", nargs=-1)
+def typecheck(files: tuple[str, ...]) -> None:
+    sources = files if files else get_staged_files()
+    targets = get_python_targets(sources)
+
+    if not targets:
+        logger.info("No staged Python files found, skipping.")
+        return
+
+    try:
+        logger.info(f"Type-checking {len(targets)} Python file(s)...")
+        run_typecheck(targets)
+        logger.success("Type checks passed.")
+    except ProcessExecutionError:
+        raise SystemExit(1)
+
+
 @main.command("pre-commit")
 @click.pass_context
 def pre_commit(ctx: click.Context) -> None:
@@ -97,5 +119,5 @@ def pre_commit(ctx: click.Context) -> None:
         logger.info("No staged files found, skipping.")
         return
 
-    for task in (fmt, ensure_sops):
+    for task in (fmt, typecheck, ensure_sops):
         ctx.invoke(task, files=staged)

@@ -12,6 +12,7 @@ dependencies = [
     "yapf==0.43.0",
     "pexpect==4.9.0",
     "yamlfix==1.19.1",
+    "mypy==2.4.1",
 ]
 
 [project.scripts]
