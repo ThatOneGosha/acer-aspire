@@ -12,7 +12,6 @@ def main() -> None:
 
 
 def get_staged_files() -> list[str]:
-    print("GET_DIFF")
     args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
     return cmd.git(*args).splitlines()
 
