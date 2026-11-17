@@ -12,12 +12,14 @@ def storage() -> None:
     pass
 
 
-'''
 def confirm_wipe(disk: str, yes: bool) -> None:
     if not yes:
         prompt = f"All data on {disk} will be removed. Continue?"
         click.confirm(prompt, default=False, abort=True)
-'''
+
+
+def wipefs(disk: str) -> None:
+    cmd.wipefs("-a", "-f", str(disk))
 
 
 @storage.command()
@@ -33,12 +35,8 @@ def setup(state: State, yes: bool) -> None:
 
     logger.success("Resolved disk: '{}'.", disk.resolve())
 
-    if not yes:
-        prompt = f"All data on {disk_id} will be removed. Continue?"
-        click.confirm(prompt, default=False, abort=True)
-
-    logger.info("Wiping existing signatures on {}...", disk_id)
-    cmd.wipefs("-a", "-f", str(disk))
+    confirm_wipe(disk_id, yes)
+    wipefs(disk)
 
     logger.info("Creating GPT partition table...")
     # yapf: disable
