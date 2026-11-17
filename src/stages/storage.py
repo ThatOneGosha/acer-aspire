@@ -22,6 +22,18 @@ def wipefs(disk: str) -> None:
     cmd.wipefs("-a", "-f", disk)
 
 
+def partition_bios_gpt(disk: str) -> None:
+    # yapf: disable
+    cmd.parted(
+        "-s", disk,
+        "mklabel", "gpt",
+        "mkpart", "primary", "1MiB", "2MiB",
+        "set", "1", "bios_grub", "on",
+        "mkpart", "primary", "btrfs", "2MiB", "100%",
+    )
+    # yapf: enable
+
+
 @storage.command()
 @click.option("--yes", is_flag=True)
 @click.pass_obj
@@ -39,15 +51,7 @@ def setup(state: State, yes: bool) -> None:
     wipefs(str(disk))
 
     logger.info("Creating GPT partition table...")
-    # yapf: disable
-    cmd.parted(
-        "-s", str(disk),
-        "mklabel", "gpt",
-        "mkpart", "primary", "1MiB", "2MiB",
-        "set", "1", "bios_grub", "on",
-        "mkpart",  "primary", "btrfs", "2MiB", "100%",
-    )
-    # yapf: enable
+    partition_bios_gpt(str(disk))
 
     cmd.partprobe(str(disk))
     cmd.udevadm("settle")
