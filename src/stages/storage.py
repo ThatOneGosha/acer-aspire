@@ -19,7 +19,7 @@ def confirm_wipe(disk: str, yes: bool) -> None:
 
 
 def wipefs(disk: str) -> None:
-    cmd.wipefs("-a", "-f", str(disk))
+    cmd.wipefs("-a", "-f", disk)
 
 
 @storage.command()
@@ -36,7 +36,7 @@ def setup(state: State, yes: bool) -> None:
     logger.success("Resolved disk: '{}'.", disk.resolve())
 
     confirm_wipe(disk_id, yes)
-    wipefs(disk)
+    wipefs(str(disk))
 
     logger.info("Creating GPT partition table...")
     # yapf: disable

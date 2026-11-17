@@ -24,7 +24,7 @@ requires-dist = [
     { name = "ensure-sops", git = "https://github.com/tacto-ai/ensure-sops?rev=f52ef481ea12b0aec76721cf7280520fb4e13f66" },
     { name = "isort", specifier = "==9.0.2" },
     { name = "loguru", specifier = "==0.8.0" },
-    { name = "mypy", specifier = ">=2.4.1" },
+    { name = "mypy", specifier = "==2.4.1" },
     { name = "pexpect", specifier = "==4.9.0" },
     { name = "plumbum", specifier = "==2.0.2" },
     { name = "yamlfix", specifier = "==1.19.1" },
