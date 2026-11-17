@@ -37,7 +37,7 @@ requires-dist = [
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "types-pexpect", specifier = ">=4.9.0.20260518" }]
+dev = [{ name = "types-pexpect", specifier = "==4.9.0.20260518" }]
 
 [[package]]
 name = "annotated-doc"
