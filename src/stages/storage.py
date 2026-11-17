@@ -6,6 +6,10 @@ from plumbum import cmd
 
 from stages import State
 
+SUBVOLUMES = ("@root", "@home", "@projects", "@snapshots")
+MOUNTPOINTS = ("home", "projects", ".snapshots")
+MNT = Path("/mnt")
+
 
 @click.group()
 def storage() -> None:
@@ -17,11 +21,11 @@ def confirm_wipe(disk: str) -> None:
     click.confirm(prompt, default=False, abort=True)
 
 
-def wipefs(disk: str) -> None:
+def wipefs(disk: Path) -> None:
     cmd.wipefs("-a", "-f", disk)
 
 
-def partition_bios_gpt(disk: str) -> None:
+def partition_bios_gpt(disk: Path) -> None:
     # yapf: disable
     cmd.parted(
         "-s", disk,
@@ -33,9 +37,34 @@ def partition_bios_gpt(disk: str) -> None:
     # yapf: enable
 
 
-def sync_partitions(disk: str) -> None:
+def sync_partitions(disk: Path) -> None:
     cmd.partprobe(disk)
     cmd.udevadm("settle")
+
+
+def create_subvolumes(part: Path, mnt: Path) -> None:
+    cmd.mount(part, mnt)
+    try:
+        for subvol in SUBVOLUMES:
+            logger.info("Creating subvolume {}...", subvol)
+            cmd.btrfs("subvolume", "create", mnt / subvol)
+    finally:
+        cmd.umount(mnt)
+
+
+def bootstrap_root(part: Path, mnt: Path) -> None:
+    cmd.mount("-o", "defaults,subvol=@root", part, mnt)
+    try:
+        logger.info("Creating mountpoints...")
+        for name in MOUNTPOINTS:
+            (mnt / name).mkdir(parents=True, exist_ok=True)
+
+        logger.info("Synchronizing xbps keys...")
+        xbps_db = mnt / "var/db/xbps"
+        xbps_db.mkdir(parents=True, exist_ok=True)
+        cmd.cp("-R", "/var/db/xbps/keys", xbps_db)
+    finally:
+        cmd.umount(mnt)
 
 
 @storage.command()
@@ -43,7 +72,9 @@ def sync_partitions(disk: str) -> None:
 @click.pass_obj
 def setup(state: State, yes: bool) -> None:
     disk_id: str = state.storage["main_disk"]["id"]
-    disk = Path(f"/dev/disk/by-id/{disk_id}")
+    by_id = Path("/dev/disk/by-id")
+    disk = by_id / disk_id
+    part2 = by_id / f"{disk_id}-part2"
 
     if not disk.exists():
         logger.error("Disk not found: '{}'.", disk)
@@ -54,37 +85,16 @@ def setup(state: State, yes: bool) -> None:
     if not yes:
         confirm_wipe(disk_id)
 
-    wipefs(str(disk))
+    wipefs(disk)
 
     logger.info("Creating GPT partition table...")
-    partition_bios_gpt(str(disk))
+    partition_bios_gpt(disk)
+    sync_partitions(disk)
 
-    sync_partitions(str(disk))
-
-    part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
     logger.info("Formatting {} as Btrfs...", part2.name)
-    cmd.mkfs_btrfs("-f", str(part2))
+    cmd.mkfs_btrfs("-f", part2)
 
-    cmd.mount(str(part2), "/mnt")
-    try:
-        for subvol in ["@root", "@home", "@projects", "@snapshots"]:
-            logger.info("Creating subvolume {}...", subvol)
-            cmd.btrfs("subvolume", "create", f"/mnt/{subvol}")
-    finally:
-        cmd.umount("/mnt")
-
-    logger.info("Creating mountpoints...")
-    cmd.mount("-o", "defaults,subvol=@root", part2, "/mnt")
-    for mountpoint in [
-            "/mnt/home",
-            "/mnt/projects",
-            "/mnt/.snapshots",
-    ]:
-        Path(mountpoint).mkdir(parents=True, exist_ok=True)
-
-    logger.info("Synchronizing xbps keys...")
-    cmd.mkdir("-p", "/mnt/var/db/xbps")
-    cmd.cp("-R", "/var/db/xbps/keys", "/mnt/var/db/xbps/")
-    cmd.umount("/mnt")
+    create_subvolumes(part2, MNT)
+    bootstrap_root(part2, MNT)
 
     logger.success("Storage partitioned, formatted, and subvolumes created.")
