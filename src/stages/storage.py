@@ -12,6 +12,14 @@ def storage() -> None:
     pass
 
 
+'''
+def confirm_wipe(disk: str, yes: bool) -> None:
+    if not yes:
+        prompt = f"All data on {disk} will be removed. Continue?"
+        click.confirm(prompt, default=False, abort=True)
+'''
+
+
 @storage.command()
 @click.option("--yes", is_flag=True)
 @click.pass_obj
