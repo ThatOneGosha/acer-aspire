@@ -12,10 +12,9 @@ def storage() -> None:
     pass
 
 
-def confirm_wipe(disk: str, yes: bool) -> None:
-    if not yes:
-        prompt = f"All data on {disk} will be removed. Continue?"
-        click.confirm(prompt, default=False, abort=True)
+def confirm_wipe(disk: str) -> None:
+    prompt = f"All data on {disk} will be removed. Continue?"
+    click.confirm(prompt, default=False, abort=True)
 
 
 def wipefs(disk: str) -> None:
@@ -31,7 +30,12 @@ def partition_bios_gpt(disk: str) -> None:
         "set", "1", "bios_grub", "on",
         "mkpart", "primary", "btrfs", "2MiB", "100%",
     )
+
+
     # yapf: enable
+def sync_partitions(disk: str) -> None:
+    cmd.partprobe(disk)
+    cmd.udevadm("settle")
 
 
 @storage.command()
@@ -47,14 +51,15 @@ def setup(state: State, yes: bool) -> None:
 
     logger.success("Resolved disk: '{}'.", disk.resolve())
 
-    confirm_wipe(disk_id, yes)
+    if not yes:
+        confirm_wipe(disk_id)
+
     wipefs(str(disk))
 
     logger.info("Creating GPT partition table...")
     partition_bios_gpt(str(disk))
 
-    cmd.partprobe(str(disk))
-    cmd.udevadm("settle")
+    sync_partitions(str(disk))
 
     part2 = Path(f"/dev/disk/by-id/{disk_id}-part2")
     logger.info("Formatting {} as Btrfs...", part2.name)
