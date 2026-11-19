@@ -1,10 +1,18 @@
 import re
 from collections.abc import Sequence
+from dataclasses import dataclass
 from functools import cache
 
 import click
 from loguru import logger
 from plumbum import FG, ProcessExecutionError, cmd
+
+
+@dataclass(frozen=True)
+class Targets:
+    python: tuple[str, ...]
+    yaml: tuple[str, ...]
+    secrets: tuple[str, ...]
 
 
 @click.group()
@@ -13,21 +21,31 @@ def main() -> None:
 
 
 @cache
+def get_targets(sources: Sequence[str]) -> Targets:
+    python: list[str] = []
+    yaml: list[str] = []
+    secrets: list[str] = []
+
+    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
+
+    for path in sources:
+        if path.endswith(".py"):
+            python.append(path)
+        elif path.endswith(
+            (".yaml", ".yml")) and not path.startswith("secrets/"):
+            yaml.append(path)
+        elif secret_re.match(path):
+            secrets.append(path)
+
+    return Targets(python=tuple(python),
+                   yaml=tuple(yaml),
+                   secrets=tuple(secrets))
+
+
+@cache
 def get_staged_files() -> tuple[str, ...]:
     args = ("diff", "--cached", "--name-only", "--diff-filter=ACM")
     return tuple(cmd.git(*args).splitlines())
-
-
-@cache
-def get_yaml_targets(sources: Sequence[str]) -> tuple[str, ...]:
-    return tuple(
-        s for s in sources
-        if s.endswith((".yaml", ".yml")) and not s.startswith("secrets/"))
-
-
-@cache
-def get_python_targets(sources: Sequence[str]) -> tuple[str, ...]:
-    return tuple(s for s in sources if s.endswith(".py"))
 
 
 def fmt_yaml(targets: Sequence[str]) -> None:
@@ -37,12 +55,6 @@ def fmt_yaml(targets: Sequence[str]) -> None:
 def fmt_python(targets: Sequence[str]) -> None:
     cmd.isort[targets] & FG
     cmd.yapf["-i", targets] & FG
-
-
-@cache
-def get_sops_targets(sources: Sequence[str]) -> tuple[str, ...]:
-    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-    return tuple(s for s in sources if secret_re.match(s))
 
 
 def run_ensure_sops(targets: Sequence[str]) -> None:
@@ -58,8 +70,8 @@ def run_checks(targets: Sequence[str]) -> None:
 @click.argument("files", nargs=-1)
 def fmt(files: tuple[str, ...]) -> None:
     sources = files if files else get_staged_files()
-    yaml_targets = get_yaml_targets(sources)
-    python_targets = get_python_targets(sources)
+    yaml_targets = get_targets(sources).yaml
+    python_targets = get_targets(sources).python
 
     if not (yaml_targets or python_targets):
         logger.info("No staged Python or YAML files found, skipping.")
@@ -84,7 +96,7 @@ def fmt(files: tuple[str, ...]) -> None:
 @click.argument("files", nargs=-1)
 def ensure_sops(files: tuple[str, ...]) -> None:
     sources = files if files else get_staged_files()
-    targets = get_sops_targets(sources)
+    targets = get_targets(sources).secrets
 
     if not targets:
         logger.info("No staged secrets found, skipping.")
@@ -102,7 +114,7 @@ def ensure_sops(files: tuple[str, ...]) -> None:
 @click.argument("files", nargs=-1)
 def check(files: tuple[str, ...]) -> None:
     sources = files if files else get_staged_files()
-    targets = get_python_targets(sources)
+    targets = get_targets(sources).python
 
     if not targets:
         logger.info("No staged Python files found, skipping.")
