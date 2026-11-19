@@ -21,7 +21,7 @@ def main() -> None:
 
 
 @cache
-def get_targets(sources: Sequence[str]) -> Targets:
+def get_targets(sources: tuple[str, ...]) -> Targets:
     python: list[str] = []
     yaml: list[str] = []
     secrets: list[str] = []
