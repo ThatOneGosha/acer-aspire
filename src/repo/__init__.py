@@ -1,4 +1,3 @@
-import re
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import cache
@@ -20,22 +19,28 @@ def main() -> None:
     pass
 
 
+def is_python_target(path: str) -> bool:
+    return path.endswith(".py")
+
+
+def is_yaml_target(path: str) -> bool:
+    return not path.startswith("secrets/") and path.endswith((".yaml", ".yml"))
+
+
+def is_secret_target(path: str) -> bool:
+    return path.startswith("secrets/") and path.endswith((".yaml", ".yml"))
+
+
 @cache
 def get_targets(sources: tuple[str, ...]) -> Targets:
     python: list[str] = []
     yaml: list[str] = []
     secrets: list[str] = []
 
-    secret_re = re.compile(r"^secrets/.*\.(yaml|yml|json|env|ini)$")
-
     for path in sources:
-        if path.endswith(".py"):
-            python.append(path)
-        elif path.endswith(
-            (".yaml", ".yml")) and not path.startswith("secrets/"):
-            yaml.append(path)
-        elif secret_re.match(path):
-            secrets.append(path)
+        if is_python_target(path): python.append(path)
+        elif is_yaml_target(path): yaml.append(path)
+        elif is_secret_target(path): secrets.append(path)
 
     return Targets(python=tuple(python),
                    yaml=tuple(yaml),
