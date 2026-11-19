@@ -131,8 +131,7 @@ def check(files: tuple[str, ...]) -> None:
 @main.command("pre-commit")
 @click.pass_context
 def pre_commit(ctx: click.Context) -> None:
-    staged = get_staged_files()
-    if not staged:
+    if not (staged := get_staged_files()):
         logger.info("No staged files found, skipping.")
         return
 
