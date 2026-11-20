@@ -2,49 +2,43 @@
 set -euo pipefail
 
 if [ "$(id -u)" -eq 0 ]; then
-    echo "ОШИБКА: Запускай от обычного пользователя (без sudo/root)!"
+    echo "Запускай от обычного юзера ПК (не root)!"
     exit 1
 fi
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-echo "=== [1/5] Снос Dropbear и установка OpenSSH + Mosh + Tailscale ==="
+echo "=== [1/4] Пакеты и службы (Void Linux) ==="
 sudo xbps-remove -y dropbear 2>/dev/null || true
 sudo xbps-install -Sy openssh mosh tailscale sops
-
-echo "=== [2/5] Включение служб runit (sshd, tailscaled) ==="
 [ -L /var/service/sshd ] || sudo ln -s /etc/sv/sshd /var/service/
 [ -L /var/service/tailscaled ] || sudo ln -s /etc/sv/tailscaled /var/service/
-sudo sv up sshd tailscaled
+sudo sv restart sshd tailscaled
 
-echo "=== [3/5] Настройка SSH-доступа (железные права и ключ) ==="
+echo "=== [2/4] Железные права и ключ доступа ==="
+chmod 755 "$HOME"
 mkdir -p "$HOME/.ssh"
 chmod 700 "$HOME/.ssh"
-chmod 755 "$HOME"
 
-PUB_KEY="$(sops -d --output-type raw --extract '["netbook_ssh"]["public_key"]' secrets/ssh.yaml | tr -d '\r\n')"
-touch "$HOME/.ssh/authorized_keys"
+sops -d --output-type raw --extract '["netbook_ssh"]["public_key"]' secrets/ssh.yaml | tr -d '\r\n' > "$REPO_ROOT/ssh/authorized.pub"
+echo "" >> "$REPO_ROOT/ssh/authorized.pub"
+cp "$REPO_ROOT/ssh/authorized.pub" "$HOME/.ssh/authorized_keys"
 chmod 600 "$HOME/.ssh/authorized_keys"
 
-if ! grep -qxF "$PUB_KEY" "$HOME/.ssh/authorized_keys"; then
-    echo "$PUB_KEY" >> "$HOME/.ssh/authorized_keys"
-fi
-
-echo "=== [4/5] Поднятие Tailscale намертво (без Tailscale SSH) ==="
-TS_KEY="$(sops -d --output-type raw --extract '["key"]' secrets/tailscale.yaml | tr -d '\r\n')"
+echo "=== [3/4] Tailscale без перехвата SSH ==="
+TS_KEY="$(sops -d secrets/tailscale.yaml | grep -oE 'tskey-auth-[A-Za-z0-9_-]+' | head -n 1)"
 sudo tailscale up --auth-key="$TS_KEY" --hostname=home-pc --ssh=false --reset
 
-echo "=== [5/5] Запрет сна при закрытии крышки ==="
+echo "=== [4/4] Запрет сна при закрытии крышки ==="
 if [ -f /etc/elogind/logind.conf ]; then
     sudo sed -i 's/^#*HandleLidSwitch=.*/HandleLidSwitch=ignore/' /etc/elogind/logind.conf
     sudo sed -i 's/^#*HandleLidSwitchExternalPower=.*/HandleLidSwitchExternalPower=ignore/' /etc/elogind/logind.conf
     sudo sed -i 's/^#*HandleLidSwitchDocked=.*/HandleLidSwitchDocked=ignore/' /etc/elogind/logind.conf
 fi
 
-PC_IP="$(tailscale ip -4)"
 echo "=========================================="
 echo "ПК ГОТОВ НАМЕРТВО!"
-echo "Для подключения с нетбука используй:"
-echo "mosh $USER@$PC_IP"
+echo "Твой пользователь: $USER | Tailscale IP: $(tailscale ip -4)"
+echo "Запушь ssh/authorized.pub в git и запускай setup-netbook.sh на ноуте."
 echo "=========================================="
