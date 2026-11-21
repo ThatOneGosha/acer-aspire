@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from functools import cached_property
 
 import click
+from loguru import logger
 from plumbum import cmd
 
 from bootstrap.storage import setup_storage
@@ -26,6 +27,7 @@ class Vault:
 def cli(ctx: click.Context, yes: bool) -> None:
     ctx.obj = Vault()
     if ctx.invoked_subcommand is None:
+        logger.info("Starting full bootstrap...")
         setup_storage(ctx.obj.storage, yes=yes)
 
 
