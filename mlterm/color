@@ -1,0 +1,16 @@
+black = #212523
+red = #5c705c
+green = #bfd454
+yellow = #e5fb79
+blue = #687d68
+magenta = #bfd454
+cyan = #8fae8f
+white = #a1b5a1
+hl_black = #535f53
+hl_red = #cbe25a
+hl_green = #353b35
+hl_yellow = #485148
+hl_blue = #5e6e5e
+hl_magenta = #c8e4c8
+hl_cyan = #b1c44f
+hl_white = #f0fff0

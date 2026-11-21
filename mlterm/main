@@ -1,6 +1,8 @@
 scrollbar_mode = none
+type_engine = xft
 use_anti_alias = true
 use_variable_column_width = false
+use_clipping = true
 termtype = xterm-256color
 fontsize = 14
 bg_color = #212523
