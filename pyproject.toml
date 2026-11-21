@@ -11,8 +11,8 @@ dependencies = [
 ]
 
 [project.scripts]
-bootstrap = "bootstrap:main"
-converge = "converge:main"
+bootstrap = "bootstrap:cli"
+converge = "converge:cli"
 
 [build-system]
 requires = ["uv_build>=0.13.9,<0.14.0"]
