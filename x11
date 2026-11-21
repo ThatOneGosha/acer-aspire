@@ -1,0 +1,27 @@
+URxvt.scrollBar: false
+URxvt.internalBorder: 2
+URxvt.font: xft:monospace:pixelsize=14:antialias=true
+URxvt.letterSpace: 0
+URxvt.termName: xterm-256color
+
+URxvt.background: #212523
+URxvt.foreground: #f0fff0
+URxvt.cursorColor: #e5fb79
+
+URxvt.color0:  #212523
+URxvt.color1:  #5c705c
+URxvt.color2:  #bfd454
+URxvt.color3:  #e5fb79
+URxvt.color4:  #687d68
+URxvt.color5:  #bfd454
+URxvt.color6:  #8fae8f
+URxvt.color7:  #a1b5a1
+
+URxvt.color8:  #535f53
+URxvt.color9:  #cbe25a
+URxvt.color10: #353b35
+URxvt.color11: #485148
+URxvt.color12: #5e6e5e
+URxvt.color13: #c8e4c8
+URxvt.color14: #b1c44f
+URxvt.color15: #f0fff0
