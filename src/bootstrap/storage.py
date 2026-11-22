@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from pathlib import Path
 
 import click
@@ -11,6 +12,12 @@ def partition_disk(disk: Path) -> None:
     name=root, type=linux
     """
     (cmd.sfdisk["-w", "always", "-W", "always", str(disk)] << layout).run()
+    cmd.partprobe(str(disk))
+    cmd.udevadm("settle")
+
+
+def create_subvolumes(mount: Path, subvols: Sequence[str]) -> None:
+    cmd.btrfs("subvolume", "create", *[str(mount / subvol) for subvol in subvols])
 
 
 def setup_storage(storage: dict, yes: bool = False) -> None:
