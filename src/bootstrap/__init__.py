@@ -29,10 +29,12 @@ class AppState:
 @click.option("--yes", is_flag=True)
 @click.pass_context
 def cli(ctx: click.Context, yes: bool) -> None:
-    ctx.obj = AppState(vault=Vault(), yes=yes)
+    state = AppState(vault=Vault(), yes=yes)
+    ctx.obj = state
+
     if ctx.invoked_subcommand is None:
         click.echo("Starting full bootstrap...")
-        setup_storage(ctx.obj.vault.storage, yes=ctx.obj.yes)
+        setup_storage(state.vault.storage, yes=state.yes)
 
 
 @cli.command("setup-storage")
