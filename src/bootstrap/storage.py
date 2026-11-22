@@ -10,14 +10,15 @@ def partition_disk(disk: Path) -> None:
     name=bios, size=1MiB, type=bios
     name=root, type=linux
     """
-    cmd.sfdisk["-w", "always", "-W", "always", str(disk)].run(stdin=layout)
+    (cmd.sfdisk["-w", "always", "-W", "always", str(disk)] << layout).run()
 
 
 def setup_storage(storage: dict, yes: bool = False) -> None:
     disk = Path("/dev/disk/by-id") / storage["id"]
 
     if not yes:
-        click.confirm(f"Partition disk {disk}? All data will be lost.", abort=True)
+        prompt = f"Partition disk {disk}? All data will be lost."
+        click.confirm(prompt, abort=True)
 
     click.echo(f"Partitioning storage {disk}...")
     partition_disk(disk)
