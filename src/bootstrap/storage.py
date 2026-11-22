@@ -1,14 +1,23 @@
-"""
-def partition_bios_gpt(disk: Path) -> None:
-    args = (
-        ("mklabel", "gpt")
-        + ("mkpart", "bios", "1MiB", "2MiB")
-        + ("set", "1", "bios_grub", "on")
-        + ("mkpart", "root", "btrfs", "2MiB", "100%")
-    )
-    cmd.parted("-s", disk, *args)
-"""
+from pathlib import Path
+
+import click
+from plumbum import cmd
 
 
-def setup_storage(cfg: dict, yes: bool = False) -> None:
-    print("Hello from setup_storage")
+def partition_disk(disk: Path) -> None:
+    layout = """
+    label: gpt
+    name=bios, size=1MiB, type=bios
+    name=root, type=linux
+    """
+    cmd.sfdisk["-w", "always", "-W", "always", str(disk)].run(stdin=layout)
+
+
+def setup_storage(storage: dict, yes: bool = False) -> None:
+    disk = Path("/dev/disk/by-id") / storage["id"]
+
+    if not yes:
+        click.confirm(f"Partition disk {disk}? All data will be lost.", abort=True)
+
+    click.echo(f"Partitioning storage {disk}...")
+    partition_disk(disk)
