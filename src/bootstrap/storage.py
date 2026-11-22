@@ -16,8 +16,14 @@ def partition_disk(disk: Path) -> None:
     cmd.udevadm("settle")
 
 
+# Disk mount required!
 def create_subvolumes(mount: Path, subvols: Sequence[str]) -> None:
     cmd.btrfs("subvolume", "create", *[str(mount / subvol) for subvol in subvols])
+
+# Disk mount required!
+def create_mountpoints(mount: Path, mountpoints: Sequence[str]) -> None:
+    for mountpoint in mountpoints:
+        (mount / mountpoint).mkdir(parents=True, exist_ok=True)
 
 
 def setup_storage(storage: dict, yes: bool = False) -> None:
